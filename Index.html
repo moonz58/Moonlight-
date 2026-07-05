@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol Access | Secure Gateway</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400&family=Inter:wght@300;400;600;700&display=swap');
+        
+        :root {
+            --primary: #38bdf8;
+            --bg-dark: #020617;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #f8fafc;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .mono { font-family: 'Fira Code', monospace; }
+
+        /* Tech-Noir Aesthetic */
+        .glass-container {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-field {
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+            outline: none;
+        }
+
+        .btn-glow {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Loading Spinner */
+        .loader {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Animated Grid Background */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            mask-image: radial-gradient(circle at center, black, transparent 80%);
+        }
+
+        #boot-screen {
+            background: var(--bg-dark);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center">
+
+    <div class="grid-bg"></div>
+
+    <div id="boot-screen" class="fixed inset-0 flex items-center justify-center transition-opacity duration-500">
+        <div class="text-center space-y-4">
+            <div class="inline-block p-4 bg-sky-500/5 rounded-full border border-sky-500/20">
+                <i class="fas fa-fingerprint text-4xl text-sky-400 animate-pulse"></i>
+            </div>
+            <div class="mono text-xs tracking-[0.3em] text-sky-500/60 uppercase">
+                Initializing_Secure_Handshake...
+            </div>
+            <div id="boot-status" class="mono text-[10px] text-slate-500">
+                Checking persistent session tokens...
+            </div>
+        </div>
+    </div>
+
+    <main id="auth-ui" class="opacity-0 transition-opacity duration-1000 w-full max-w-[420px] px-6">
+        <div class="glass-container rounded-3xl p-8 relative">
+            
+            <div class="text-center mb-10">
+                <div class="flex justify-center mb-4">
+                    <div class="w-12 h-12 bg-sky-500 rounded-xl flex items-center justify-center rotate-3 shadow-lg shadow-sky-500/20">
+                        <i class="fas fa-terminal text-white text-xl"></i>
+                    </div>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight text-white">Security Vault</h1>
+                <p class="text-slate-400 text-xs mt-2 mono">LEVEL_4_ENCRYPTION_ACTIVE</p>
+            </div>
+
+            <div class="flex p-1 bg-slate-950/50 rounded-xl mb-8 border border-white/5">
+                <button id="mode-login" class="flex-1 py-2 text-xs font-bold rounded-lg bg-sky-500 text-white transition-all">SIGN_IN</button>
+                <button id="mode-register" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-300 transition-all">ENROLL</button>
+            </div>
+
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2 ml-1">Identity (Email)</label>
+                    <div class="relative">
+                        <i class="fas fa-at absolute left-4 top-3.5 text-slate-600 text-sm"></i>
+                        <input type="email" id="email" placeholder="root@secure.io" 
+                            class="input-field w-full py-3.5 pl-11 pr-4 rounded-xl text-sm text-white">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2 ml-1">Keyphrase (Password)</label>
+                    <div class="relative">
+                        <i class="fas fa-key absolute left-4 top-3.5 text-slate-600 text-sm"></i>
+                        <input type="password" id="password" placeholder="••••••••••••" 
+                            class="input-field w-full py-3.5 pl-11 pr-4 rounded-xl text-sm text-white">
+                    </div>
+                </div>
+
+                <button id="action-btn" class="btn-glow w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-black py-4 rounded-xl text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all mt-4">
+                    <span id="btn-label">Request Access</span>
+                    <div id="btn-spinner" class="loader hidden"></div>
+                </button>
+            </div>
+
+            <div id="console" class="mt-6 p-3 rounded-lg border border-transparent text-[11px] mono hidden"></div>
+
+            <div class="mt-10 pt-6 border-t border-white/5 text-center">
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest">
+                    <i class="fas fa-circle-nodes mr-1 text-sky-500"></i> Distributed Node Validation
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { supabase } from "https://patel-102.github.io/Fantasy/Supabase2.js";
+
+        // Configuration State
+        const state = {
+            mode: 'login',
+            isLoading: false,
+            deviceId: localStorage.getItem('device_id') || null
+        };
+
+        // DOM Elements
+        const DOM = {
+            boot: document.getElementById('boot-screen'),
+            status: document.getElementById('boot-status'),
+            ui: document.getElementById('auth-ui'),
+            email: document.getElementById('email'),
+            pass: document.getElementById('password'),
+            btn: document.getElementById('action-btn'),
+            btnLabel: document.getElementById('btn-label'),
+            spinner: document.getElementById('btn-spinner'),
+            console: document.getElementById('console'),
+            tabLogin: document.getElementById('mode-login'),
+            tabReg: document.getElementById('mode-register')
+        };
+
+        // =====================================================
+        // 🔐 SECURITY UTILITIES
+        // =====================================================
+
+        async function getNetworkSignature() {
+            try {
+                const res = await fetch("https://api.ipify.org?format=json");
+                const data = await res.json();
+                return data.ip;
+            } catch { return "0.0.0.0"; }
+        }
+
+        function generateDeviceId() {
+            if (!state.deviceId) {
+                state.deviceId = crypto.randomUUID();
+                localStorage.setItem("device_id", state.deviceId);
+            }
+            return state.deviceId;
+        }
+
+        function encryptRedirect(user) {
+            const token = localStorage.getItem("session_token");
+            const payload = btoa(JSON.stringify({
+                uid: user.id,
+                sig: token.substring(0, 8),
+                iat: Date.now()
+            }));
+            window.location.href = `home.html?vault=${payload}&ref=${crypto.randomUUID()}`;
+        }
+
+        function log(msg, type = 'info') {
+            DOM.console.classList.remove('hidden', 'bg-red-500/10', 'text-red-400', 'bg-sky-500/10', 'text-sky-400');
+            DOM.console.innerText = `> ${msg}`;
+            if (type === 'error') {
+                DOM.console.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
+            } else {
+                DOM.console.classList.add('bg-sky-500/10', 'text-sky-400', 'border-sky-500/20');
+            }
+        }
+
+        // =====================================================
+        // 🛡️ AUTH GUARD (PRE-LOGIN CHECK)
+        // =====================================================
+
+        async function runInitialGuard() {
+            DOM.status.innerText = "Querying secure session state...";
+            const token = localStorage.getItem("session_token");
+            const device = generateDeviceId();
+
+            if (token) {
+                try {
+                    const ip = await getNetworkSignature();
+                    // Call your SQL validate function
+                    const { data: isValid, error } = await supabase.rpc("validate_zero_trust", {
+                        p_token: token,
+                        p_device: device,
+                        p_ip: ip
+                    });
+
+                    if (isValid && !error) {
+                        DOM.status.innerText = "Session validated. Resuming context...";
+                        const { data: { user } } = await supabase.auth.getUser();
+                        setTimeout(() => encryptRedirect(user), 800);
+                        return;
+                    }
+                } catch (e) {
+                    console.warn("Auto-login failed. Returning to gate.");
+                }
+            }
+
+            // If no token or invalid, show UI
+            DOM.boot.style.opacity = '0';
+            setTimeout(() => {
+                DOM.boot.classList.add('hidden');
+                DOM.ui.classList.replace('opacity-0', 'opacity-100');
+            }, 500);
+        }
+
+        // =====================================================
+        // ⚡ AUTH ACTIONS
+        // =====================================================
+
+        async function processRequest() {
+            if (state.isLoading) return;
+            
+            const email = DOM.email.value;
+            const password = DOM.pass.value;
+
+            if (!email || !password) return log("Identity and Keyphrase required", "error");
+
+            state.isLoading = true;
+            DOM.btnLabel.classList.add('hidden');
+            DOM.spinner.classList.remove('hidden');
+
+            try {
+                const ip = await getNetworkSignature();
+                const device = generateDeviceId();
+
+                if (state.mode === 'register') {
+                    const { error } = await supabase.auth.signUp({ email, password });
+                    if (error) throw error;
+                    log("Enrollment request submitted. Verification required.", "success");
+                } else {
+                    // 1. Auth Sign In
+                    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+
+                    // 2. Zero-Trust SQL Handshake
+                    const { data: token, error: sessionErr } = await supabase.rpc("create_session", {
+                        p_device: device,
+                        p_ip: ip,
+                        p_agent: navigator.userAgent
+                    });
+
+                    if (sessionErr) {
+                        await supabase.auth.signOut();
+                        throw sessionErr;
+                    }
+
+                    if (token && token !== "RECONNECTED") {
+                        localStorage.setItem("session_token", token);
+                    }
+
+                    log("Handshake complete. Diverting to home node...", "success");
+                    setTimeout(() => encryptRedirect(data.user), 1000);
+                }
+            } catch (err) {
+                log(err.message || "Protocol rejection", "error");
+                state.isLoading = false;
+                DOM.btnLabel.classList.remove('hidden');
+                DOM.spinner.classList.add('hidden');
+            }
+        }
+
+        // =====================================================
+        // 🎨 UI CONTROLS
+        // =====================================================
+
+        function toggleMode(target) {
+            state.mode = target;
+            if (target === 'login') {
+                DOM.tabLogin.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-sky-500 text-white transition-all";
+                DOM.tabReg.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 transition-all hover:text-white";
+                DOM.btnLabel.innerText = "Request Access";
+            } else {
+                DOM.tabReg.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-sky-500 text-white transition-all";
+                DOM.tabLogin.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 transition-all hover:text-white";
+                DOM.btnLabel.innerText = "Register Identity";
+            }
+        }
+
+        DOM.tabLogin.onclick = () => toggleMode('login');
+        DOM.tabReg.onclick = () => toggleMode('register');
+        DOM.btn.onclick = processRequest;
+
+        // Start the guard sequence
+        window.addEventListener('load', runInitialGuard);
+    </script>
+</body>
+</html>
