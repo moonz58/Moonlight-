@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KING | Profile</title>
+    <script type="module" src="https://patel-102.github.io/Fantasy/Supabase2.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;600&display=swap');
+
+        :root {
+            --king-gold: #D4AF37;
+            --king-blue: #00d2ff;
+            --bg-deep: #0a0a0a;
+            --error-red: #ff4d4d;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- DYNAMIC WALLPAPER BACKGROUND --- */
+        .profile-wallpaper-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 48vh; /* Covers top half down to gender info */
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        #user-wallpaper {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.35) contrast(1.1);
+        }
+
+        .wallpaper-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 50%, var(--bg-deep) 100%);
+        }
+
+        .king-header {
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.2em;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+            background: linear-gradient(90deg, #fff, #D4AF37, #fff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 4s linear infinite;
+        }
+
+        @keyframes shine { to { background-position: 200% center; } }
+
+        /* --- FRIEND COUNT SIDE BADGE --- */
+        .friend-side-stat {
+            position: absolute;
+            left: -65px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            z-index: 45;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(0,0,0,0.4);
+            padding: 8px 5px;
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
+        .friend-side-stat:active { transform: translateY(-50%) scale(0.9); }
+        .friend-side-stat i { color: var(--king-gold); font-size: 16px; margin-bottom: 2px; filter: drop-shadow(0 0 5px var(--king-gold)); }
+        .friend-side-stat span { font-size: 13px; font-weight: 900; color: white; font-family: 'Cinzel', serif; }
+        .friend-side-stat label { font-size: 7px; text-transform: uppercase; color: #777; letter-spacing: 1px; font-weight: 800; }
+
+        /* --- SERPENT ARROW LABEL --- */
+        .sub-title {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px 22px;
+            font-family: 'Cinzel', serif;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            z-index: 50;
+            white-space: nowrap;
+            display: none;
+            clip-path: polygon(15% 0%, 85% 0%, 100% 50%, 85% 100%, 50% 88%, 15% 100%, 0% 50%);
+        }
+
+        .premium-glow {
+            display: block;
+            color: var(--king-gold);
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
+            text-shadow: 0 0 10px var(--king-gold);
+            animation: serpent-glow-pulse 2s infinite;
+        }
+
+        .elite-glow {
+            display: block;
+            color: var(--king-blue);
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid rgba(0, 210, 255, 0.5);
+            box-shadow: 0 0 25px rgba(0, 210, 255, 0.4);
+            text-shadow: 0 0 10px var(--king-blue);
+            animation: serpent-glow-pulse 2s infinite;
+        }
+
+        @keyframes serpent-glow-pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); filter: brightness(1); }
+            50% { transform: translateX(-50%) scale(1.08); filter: brightness(1.3); }
+        }
+
+        /* --- AVATAR & RINGS --- */
+        .avatar-ring {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            padding: 4px;
+            background: linear-gradient(45deg, var(--king-gold), #111, var(--king-gold));
+            background-size: 200% 200%;
+            animation: borderRotate 5s linear infinite;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        @keyframes borderRotate {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #000;
+        }
+
+        #custom-frame {
+            position: absolute;
+            inset: -12px;
+            pointer-events: none;
+            z-index: 20;
+            display: none;
+            width: 154px;
+            height: 154px;
+        }
+
+        /* --- UI NAVIGATION --- */
+        #full-image-overlay, #visitor-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.94);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(12px);
+        }
+
+        .floating-menu {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            z-index: 30;
+        }
+
+        .menu-btn {
+            position: absolute;
+            background: rgba(10, 10, 10, 0.95);
+            border: 1px solid var(--king-gold);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--king-gold);
+            opacity: 0;
+            transform: scale(0);
+            pointer-events: auto;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .menu-btn.active { opacity: 1; transform: scale(1); }
+        .btn-cam { transform: translate(-75px, 15px) scale(0); }
+        .btn-gal { transform: translate(75px, 15px) scale(0); }
+        .menu-btn.active.btn-cam { transform: translate(-75px, 15px) scale(1); }
+        .menu-btn.active.btn-gal { transform: translate(75px, 15px) scale(1); }
+
+        /* --- STATUS & FORMS --- */
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .online { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+        .offline { background: #444; }
+
+        .edit-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            color: white;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .editing .edit-input:not([disabled]) { border-bottom: 1px solid rgba(212, 175, 55, 0.4); background: rgba(255,255,255,0.02); }
+        .editing .edit-input:focus { border-bottom: 1px solid var(--king-gold); }
+
+        .switch { width: 34px; height: 18px; background: #1a1a1a; border-radius: 20px; position: relative; cursor: pointer; border: 1px solid #333; }
+        .switch-toggle { width: 12px; height: 12px; background: var(--king-gold); border-radius: 50%; position: absolute; top: 2px; left: 3px; transition: 0.3s; }
+        .switch.on .switch-toggle { left: 17px; background: #00ff88; }
+
+        .info-label { font-size: 0.65rem; color: #666; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 800; }
+
+        #debug-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(200%);
+            background: #050505;
+            border: 1px solid #222;
+            padding: 12px 25px;
+            border-radius: 40px;
+            font-size: 12px;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 260px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #debug-toast.show { transform: translateX(-50%) translateY(0); }
+        .debug-err { color: var(--error-red); }
+        .debug-succ { color: #00ff88; }
+
+        .wallet-container {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 6px 16px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            backdrop-filter: blur(8px);
+            cursor: pointer;
+        }
+
+        #visitor-list::-webkit-scrollbar { width: 2px; }
+        #visitor-list::-webkit-scrollbar-thumb { background: #333; }
+    </style>
+</head>
+<body class="pt-16 pb-12">
+
+    <div class="profile-wallpaper-container">
+        <img id="user-wallpaper" src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop" alt="Wallpaper">
+        <div class="wallpaper-overlay"></div>
+    </div>
+
+    <header class="fixed top-0 inset-x-0 h-14 bg-black/40 backdrop-blur-md flex items-center justify-center z-[100] border-b border-white/5">
+        <span class="king-header text-2xl font-black">KING</span>
+    </header>
+
+    <div id="debug-toast">
+        <i id="debug-icon" class="fas fa-circle-notch fa-spin"></i>
+        <span id="debug-msg">Initializing...</span>
+    </div>
+
+    <div id="full-image-overlay" onclick="this.style.display='none'">
+        <img id="overlay-img" src="" alt="View" class="max-w-[85%] max-h-[75%] rounded-3xl shadow-2xl border border-white/10">
+    </div>
+
+    <div id="visitor-overlay" onclick="this.style.display='none'">
+        <div class="bg-[#080808] border border-white/10 p-8 rounded-[2.5rem] w-[90%] max-w-sm" onclick="event.stopPropagation()">
+            <div class="text-center mb-8">
+                <i class="fas fa-fingerprint text-gold-500 text-2xl mb-3"></i>
+                <h2 class="text-[10px] font-black tracking-[0.5em] text-gray-500 uppercase">Profile Access Logs</h2>
+            </div>
+            <div id="visitor-list" class="space-y-3 max-h-[350px] overflow-y-auto pr-2"></div>
+        </div>
+    </div>
+
+    <main class="max-w-md mx-auto px-8 relative" id="profile-container">
+        
+        <div class="flex flex-col items-center mt-12">
+            <div class="avatar-ring" id="avatar-container">
+                
+                <div class="friend-side-stat" onclick="location.href='friend.html'">
+                    <i class="fas fa-user-friends"></i>
+                    <span id="friend-count-side">0</span>
+                    <label>Friends</label>
+                </div>
+
+                <span id="sub-title-badge" class="sub-title"></span>
+                
+                <img id="custom-frame" src="" alt="Frame">
+                
+                <img id="profile-pic" src="https://ui-avatars.com/api/?name=K&background=111&color=D4AF37" class="avatar-img" onclick="showFullImage()">
+                
+                <div class="floating-menu">
+                    <button onclick="location.href='camera.html'" class="menu-btn btn-cam" id="m-cam"><i class="fas fa-camera text-sm"></i></button>
+                    <button onclick="location.href='photos.html'" class="menu-btn btn-gal" id="m-gal"><i class="fas fa-images text-sm"></i></button>
+                </div>
+            </div>
+
+            <div class="text-center mt-6 w-full">
+                <div class="flex items-center justify-center text-[12px] font-bold text-gray-500 mb-1">
+                    <span id="status-dot" class="status-dot offline"></span>
+                    <span id="username-display">@syncing...</span>
+                </div>
+                <input type="text" id="name-input" class="edit-input text-center text-3xl font-black tracking-tighter" value="---" disabled>
+                
+                <div class="wallet-container" onclick="location.href='shop.html'">
+                    <i class="fas fa-coins text-yellow-500 text-xs"></i>
+                    <span id="coin-balance" class="text-[11px] font-black tracking-widest text-white">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-between mt-12 px-2">
+            <div class="flex flex-col items-start w-1/3">
+                <span class="info-label">Age</span>
+                <div class="relative w-full mt-1">
+                    <span id="age-display" class="text-lg font-bold text-white">--</span>
+                    <input type="date" id="dob-input" class="edit-input absolute inset-0 opacity-0 pointer-events-none" disabled>
+                </div>
+            </div>
+            <div class="flex flex-col items-end w-1/3">
+                <span class="info-label">Gender</span>
+                <select id="gender-input" class="edit-input text-right text-lg font-bold bg-transparent appearance-none mt-1" disabled>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mt-12">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-4">
+                    <span class="info-label">Vault Gallery</span>
+                    <div class="switch" id="privacy-switch" onclick="togglePrivacy()">
+                        <div class="switch-toggle"></div>
+                    </div>
+                </div>
+                <button onclick="location.href='photos.html'" class="text-gray-600 hover:text-white transition">
+                    <i class="fas fa-expand-alt text-xs"></i>
+                </button>
+            </div>
+            <div id="gallery-preview" class="grid grid-cols-3 gap-2 rounded-2xl overflow-hidden shadow-2xl">
+                <div class="aspect-square bg-white/5 animate-pulse"></div>
+                <div class="aspect-square bg-white/5 animate-pulse"></div>
+                <div class="aspect-square bg-white/5 animate-pulse"></div>
+            </div>
+        </div>
+
+        <div class="mt-12 space-y-8 pb-10" id="info-form">
+            <div class="bg-white/5 p-5 rounded-2xl border border-white/5">
+                <span class="info-label">Profile Bio</span>
+                <textarea id="bio-input" class="edit-input text-sm italic h-auto mt-2 leading-relaxed" rows="2" placeholder="The story begins here..." disabled></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-8 px-2">
+                <div>
+                    <span class="info-label">City/State</span>
+                    <input type="text" id="city_state-input" class="edit-input text-sm font-semibold mt-1" placeholder="Location" disabled>
+                </div>
+                <div>
+                    <span class="info-label">Religion</span>
+                    <select id="religion-input" class="edit-input text-sm font-semibold mt-1 bg-transparent" disabled>
+                        <option value="Hinduism">Hinduism</option>
+                        <option value="Islam">Islam</option>
+                        <option value="Buddhism">Buddhism</option>
+                        <option value="Christian">Christian</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-8 px-2">
+                <div>
+                    <span class="info-label">Relationship</span>
+                    <select id="relationship-input" class="edit-input text-sm font-semibold mt-1 bg-transparent" disabled>
+                        <option value="single">Single</option>
+                        <option value="married">Married</option>
+                        <option value="in_relationship">In Relationship</option>
+                    </select>
+                </div>
+                <div>
+                    <span class="info-label">Profession</span>
+                    <select id="profession-input" class="edit-input text-sm font-semibold mt-1 bg-transparent" disabled>
+                        <option value="student">Student</option>
+                        <option value="job">Professional</option>
+                        <option value="housewife">Homemaker</option>
+                        <option value="none">Freelancer</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-8 px-2 border-b border-white/5 pb-8">
+                <div>
+                    <span class="info-label">Height (cm)</span>
+                    <input type="number" id="height-input" step="0.1" class="edit-input text-sm font-semibold mt-1" placeholder="0.0" disabled>
+                </div>
+                <div>
+                    <span class="info-label">Weight (kg)</span>
+                    <input type="number" id="weight-input" step="0.1" class="edit-input text-sm font-semibold mt-1" placeholder="0.0" disabled>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-8 px-2">
+                <div>
+                    <span class="info-label">Social ID</span>
+                    <input type="text" id="social_id-input" class="edit-input text-sm font-semibold mt-1" placeholder="@handle" disabled>
+                </div>
+                <div>
+                    <span class="info-label">Verified Mobile</span>
+                    <input type="text" id="mobile-input" class="edit-input text-sm font-semibold mt-1" placeholder="+91 00000 00000" disabled>
+                </div>
+            </div>
+
+            <!-- DOWNSIDE: ACTIVE CHAT ROOM VIEW -->
+            <div class="bg-white/5 p-4 rounded-2xl border border-white/5 flex items-center justify-between mt-6">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-comments text-xs text-cyan-400 animate-pulse"></i>
+                    <div class="flex flex-col">
+                        <span class="info-label text-[9px]">Active Chat Room</span>
+                        <span id="active-room-display" class="text-xs font-bold text-gray-300 mt-0.5">Not in any room</span>
+                    </div>
+                </div>
+                <button id="join-room-btn" onclick="goToChatRoom()" class="text-[9px] uppercase font-black tracking-wider text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 px-3 py-1.5 rounded-xl hidden">
+                    Join
+                </button>
+            </div>
+
+            <div class="flex justify-between items-center text-[10px] font-black text-gray-700 pt-6 px-2 uppercase tracking-widest">
+                <span id="country-display">Origin: --</span>
+                <span id="joined-at">Established --</span>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center mt-8 mb-12 gap-10">
+            <button id="edit-trigger" onclick="toggleEditMode()" class="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:border-gold-500 transition-all active:scale-90">
+                <i id="edit-icon" class="fas fa-pencil-alt text-xs text-gray-500"></i>
+            </button>
+
+            <button onclick="openVisitors()" class="group flex flex-col items-center">
+                <div class="flex items-center gap-3 mb-1">
+                    <span id="visitor-count-text" class="text-2xl font-black text-white group-hover:text-gold-500 transition">0</span>
+                    <i class="fas fa-bolt text-[10px] text-gray-700"></i>
+                </div>
+                <span class="info-label text-[9px]">TOTAL PROFILE VISITS</span>
+            </button>
+        </div>
+
+    </main>
+
+    <script type="module">
+        import { supabase } from 'https://patel-102.github.io/Fantasy/Supabase2.js';
+
+        let isEditing = false;
+        let currentUser = null;
+        let profileData = null;
+
+        const debugToast = document.getElementById('debug-toast');
+        const debugMsg = document.getElementById('debug-msg');
+        const debugIcon = document.getElementById('debug-icon');
+
+        function log(message, type = 'load') {
+            debugMsg.innerText = message;
+            debugToast.classList.add('show');
+            debugIcon.className = (type === 'err') ? 'fas fa-exclamation-triangle debug-err' : 
+                                  (type === 'succ') ? 'fas fa-check-circle debug-succ' : 
+                                  'fas fa-circle-notch fa-spin';
+            if(type !== 'load') setTimeout(() => debugToast.classList.remove('show'), 3000);
+        }
+
+        async function init() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) { log("Please login", "err"); return; }
+            currentUser = user;
+            
+            await loadProfile();
+            await loadGallery();
+            await loadSubscription();
+            await loadCustomAssets(); 
+            await updateVisitorCount();
+            setupAvatarHold();
+        }
+
+        async function loadProfile() {
+            log("Syncing Profile...");
+            const { data, error } = await supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle(); 
+            if (error) { log("Sync Error", "err"); return; }
+            profileData = data || (await supabase.from('profiles').insert([{ id: currentUser.id }]).select().single()).data;
+            
+            renderProfile(profileData);
+            await loadWallet(); 
+            log("Profile Ready", "succ");
+        }
+
+        async function loadSubscription() {
+            const { data } = await supabase.from('user_subscriptions').select('subscription, is_active').eq('user_id', currentUser.id).maybeSingle();
+            const badge = document.getElementById('sub-title-badge');
+            if (data && data.is_active) {
+                badge.innerText = data.subscription;
+                badge.className = `sub-title ${data.subscription.toLowerCase()}-glow`;
+            } else { badge.className = 'sub-title'; }
+        }
+
+        async function loadCustomAssets() {
+            // 1. Fetch Wallpaper from 'wallpaper' bucket (user_id/filename)
+            const { data: wpList } = await supabase.storage.from('wallpaper').list(currentUser.id, { limit: 1 });
+            if (wpList && wpList.length > 0) {
+                const { data: wpUrl } = supabase.storage.from('wallpaper').getPublicUrl(`${currentUser.id}/${wpList[0].name}`);
+                document.getElementById('user-wallpaper').src = wpUrl.publicUrl;
+            }
+
+            // 2. Fetch Label Frame from 'label' bucket
+            const { data: frameList } = await supabase.storage.from('label').list(currentUser.id, { limit: 1 });
+            if (frameList && frameList.length > 0) {
+                const { data: frameUrl } = supabase.storage.from('label').getPublicUrl(`${currentUser.id}/${frameList[0].name}`);
+                const frameImg = document.getElementById('custom-frame');
+                frameImg.src = frameUrl.publicUrl;
+                frameImg.style.display = 'block';
+            }
+        }
+
+        async function updateVisitorCount() {
+            const { count } = await supabase.from('profile_visitors').select('*', { count: 'exact', head: true }).eq('owner_id', currentUser.id);
+            document.getElementById('visitor-count-text').innerText = count || 0;
+        }
+
+        window.openVisitors = async function() {
+            const list = document.getElementById('visitor-list');
+            list.innerHTML = '<div class="text-center py-10"><i class="fas fa-circle-notch fa-spin text-gray-800"></i></div>';
+            document.getElementById('visitor-overlay').style.display = 'flex';
+            const { data } = await supabase.from('profile_visitors').select('visitor_id, visited_at').eq('owner_id', currentUser.id).order('visited_at', { ascending: false });
+            if (!data?.length) {
+                list.innerHTML = '<p class="text-[10px] text-center text-gray-700 mt-10 tracking-widest">LOGS EMPTY</p>';
+                return;
+            }
+            list.innerHTML = data.map(v => `
+                <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <div class="flex items-center gap-4">
+                        <div class="w-1.5 h-1.5 rounded-full bg-gold-500"></div>
+                        <span class="text-[11px] font-black text-gray-400">UID_${v.visitor_id.substring(0, 6)}</span>
+                    </div>
+                    <span class="text-[10px] font-bold text-gray-600">${new Date(v.visited_at).toLocaleDateString()}</span>
+                </div>`).join('');
+        };
+
+        async function loadWallet() {
+            const { data } = await supabase.from('user_coins').select('coins').eq('user_id', currentUser.id).maybeSingle();
+            if (data) {
+                gsap.to(document.getElementById('coin-balance'), { innerText: data.coins, duration: 2, snap: { innerText: 1 }, ease: "power4.out" });
+            }
+        }
+
+        function renderProfile(data) {
+            document.getElementById('username-display').innerText = `@${data.username || 'unset'}`;
+            document.getElementById('name-input').value = data.name || '';
+            document.getElementById('bio-input').value = data.bio || '';
+            document.getElementById('gender-input').value = data.gender || 'male';
+            document.getElementById('religion-input').value = data.religion || 'Other';
+            document.getElementById('relationship-input').value = data.relationship || 'single';
+            document.getElementById('profession-input').value = data.profession || 'none';
+            document.getElementById('height-input').value = data.height || '';
+            document.getElementById('weight-input').value = data.weight || '';
+            document.getElementById('city_state-input').value = data.city_state || '';
+            document.getElementById('social_id-input').value = data.social_id || '';
+            document.getElementById('mobile-input').value = data.mobile_number || '';
+            document.getElementById('country-display').innerText = `Origin: ${data.country || 'Global'}`;
+            
+            // SIDE FRIEND COUNT
+            document.getElementById('friend-count-side').innerText = data.friend_count || 0;
+
+            if (data.avatar_url) document.getElementById('profile-pic').src = data.avatar_url;
+            if (data.dob) {
+                document.getElementById('dob-input').value = data.dob;
+                document.getElementById('age-display').innerText = Math.floor((new Date() - new Date(data.dob)) / 31557600000) || '--';
+            }
+            if (data.created_at) {
+                document.getElementById('joined-at').innerText = `Established ${new Date(data.created_at).getFullYear()}`;
+            }
+            document.getElementById('status-dot').className = 'status-dot online';
+
+            // RENDER ACTIVE CHAT ROOM
+            if (data.chat_room || data.active_room) {
+                const roomName = data.chat_room || data.active_room;
+                document.getElementById('active-room-display').innerText = roomName;
+                document.getElementById('join-room-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('active-room-display').innerText = "Offline / No Active Room";
+                document.getElementById('join-room-btn').classList.add('hidden');
+            }
+        }
+
+        async function loadGallery() {
+            const { data } = await supabase.from('gallery').select('image_url').eq('user_id', currentUser.id).limit(3).order('created_at', { ascending: false });
+            if (data?.length > 0) {
+                const container = document.getElementById('gallery-preview');
+                container.innerHTML = data.map(img => `<div class="aspect-square bg-cover bg-center" style="background-image: url('${img.image_url}')"></div>`).join('');
+            }
+        }
+
+        window.toggleEditMode = async function() {
+            const inputs = document.querySelectorAll('.edit-input');
+            const editIcon = document.getElementById('edit-icon');
+            const dobInput = document.getElementById('dob-input');
+            if (!isEditing) {
+                isEditing = true;
+                document.getElementById('profile-container').classList.add('editing');
+                inputs.forEach(i => i.disabled = false);
+                editIcon.className = 'fas fa-check text-green-500';
+                dobInput.style.opacity = '1';
+                dobInput.style.pointerEvents = 'auto';
+                log("Modification Authorized");
+            } else { await saveProfile(); }
+        };
+
+        async function saveProfile() {
+            log("Encrypting & Saving...");
+            const mobile = document.getElementById('mobile-input').value.trim();
+            const bio = document.getElementById('bio-input').value.trim();
+            
+            const updates = {
+                name: document.getElementById('name-input').value,
+                bio: bio || null,
+                gender: document.getElementById('gender-input').value,
+                religion: document.getElementById('religion-input').value,
+                relationship: document.getElementById('relationship-input').value,
+                profession: document.getElementById('profession-input').value,
+                height: parseFloat(document.getElementById('height-input').value) || null,
+                weight: parseFloat(document.getElementById('weight-input').value) || null,
+                city_state: document.getElementById('city_state-input').value,
+                social_id: document.getElementById('social_id-input').value,
+                mobile_number: mobile || null,
+                dob: document.getElementById('dob-input').value || null,
+                updated_at: new Date()
+            };
+
+            const { error } = await supabase.from('profiles').update(updates).eq('id', currentUser.id);
+            if (error) { log(error.message, "err"); } 
+            else { 
+                log("Changes Secured", "succ"); 
+                isEditing = false; 
+                document.getElementById('profile-container').classList.remove('editing'); 
+                document.querySelectorAll('.edit-input').forEach(i => i.disabled = true); 
+                document.getElementById('edit-icon').className = 'fas fa-pencil-alt text-gray-500'; 
+                document.getElementById('dob-input').style.opacity = '0'; 
+                loadProfile(); 
+            }
+        }
+
+        function setupAvatarHold() {
+            const container = document.getElementById('avatar-container');
+            const cam = document.getElementById('m-cam'); const gal = document.getElementById('m-gal');
+            let timer;
+            container.addEventListener('touchstart', (e) => { 
+                timer = setTimeout(() => { cam.classList.add('active'); gal.classList.add('active'); }, 600); 
+            });
+            container.addEventListener('touchend', () => { 
+                clearTimeout(timer); 
+                setTimeout(() => { cam.classList.remove('active'); gal.classList.remove('active'); }, 3000); 
+            });
+        }
+
+        window.showFullImage = function() { 
+            if (isEditing) return; 
+            document.getElementById('overlay-img').src = document.getElementById('profile-pic').src; 
+            document.getElementById('full-image-overlay').style.display = 'flex'; 
+        };
+        
+        window.togglePrivacy = function() { 
+            document.getElementById('privacy-switch').classList.toggle('on'); 
+            log("Gallery Vault Locked", "succ"); 
+        };
+
+        window.goToChatRoom = function() {
+            if (profileData && (profileData.chat_room || profileData.active_room)) {
+                const targetRoom = profileData.chat_room || profileData.active_room;
+                location.href = `chatroom.html?room=${encodeURIComponent(targetRoom)}`;
+            }
+        };
+
+        init();
+    </script>
+</body>
+</html>
